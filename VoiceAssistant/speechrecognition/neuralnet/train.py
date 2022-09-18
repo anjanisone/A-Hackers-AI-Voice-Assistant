@@ -13,6 +13,10 @@ from dataset import Data, collate_fn_padd
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
+import gc
+gc.collect()
+torch.cuda.empty_cache()
+
 
 class SpeechModule(LightningModule):
 
@@ -30,7 +34,8 @@ class SpeechModule(LightningModule):
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
                                         self.optimizer, mode='min',
                                         factor=0.50, patience=6)
-        return [self.optimizer], [self.scheduler]
+        self.monitor = "metric_to_track"
+        return {'optimizer':self.optimizer, 'scheduler':self.scheduler, 'monitor':'val_loss'}
 
     def step(self, batch):
         spectrograms, labels, input_lengths, label_lengths = batch 

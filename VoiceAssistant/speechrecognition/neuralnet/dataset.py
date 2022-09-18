@@ -4,7 +4,8 @@ import torch.nn as nn
 import pandas as pd
 import numpy as np
 from utils import TextProcess
-
+import sys
+sys.setrecursionlimit(1500)
 
 # NOTE: add time stretch
 class SpecAugment(nn.Module):
@@ -103,9 +104,8 @@ class Data(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.item()
-
+        file_path = self.data.key.iloc[idx]
         try:
-            file_path = self.data.key.iloc[idx]
             waveform, _ = torchaudio.load(file_path)
             label = self.text_process.text_to_int_sequence(self.data['text'].iloc[idx])
             spectrogram = self.audio_transforms(waveform) # (channel, feature, time)
@@ -115,7 +115,7 @@ class Data(torch.utils.data.Dataset):
                 raise Exception('spectrogram len is bigger then label len')
             if spectrogram.shape[0] > 1:
                 raise Exception('dual channel, skipping audio file %s'%file_path)
-            if spectrogram.shape[2] > 1650:
+            if spectrogram.shape[2] > 3500:
                 raise Exception('spectrogram to big. size %s'%spectrogram.shape[2])
             if label_len == 0:
                 raise Exception('label len is zero... skipping %s'%file_path)
